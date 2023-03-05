@@ -1,4 +1,3 @@
-
 const
   SET_TIMER = 0
   CONSOLE_PUTCHAR = 1
@@ -41,8 +40,23 @@ template echo*(s: string): untyped =
     putchar(ch.clong)
 
 proc putchar*(ch: clong): void =
-  sbicall(CONSOLE_PUTCHAR.clong, ch, 0, 0)
+  sbicall(CONSOLE_PUTCHAR.clong, ch, 1, 0)
 
 proc shutdown*(): void =
   sbicall(SHUTDOWN, 0, 0, 0)
 
+
+
+
+# {.push stackTrace:off.}
+# proc sbicall(which, arg0, arg1, arg2: clong): clong {.discardable.} =
+#   asm """
+#     ld a0, `arg0`
+#     ld a1, `arg1`
+#     ld a2, `arg2`
+#     ld a7, `which`
+#     :"+r"(`arg0`)
+#     :"r"(`arg1`), "r"(`arg2`), "r"(`which`)
+#   """
+#   result = arg0
+# {.pop.}

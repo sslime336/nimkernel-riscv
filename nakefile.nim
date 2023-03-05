@@ -1,6 +1,7 @@
 import nake
 import std/strformat
 import std/os
+import std/strutils
 
 const
   KERNEL_ENTRY_PHYSICAL_ADDRESS = 0x80200000
@@ -12,18 +13,22 @@ const
   ENTRY_O = "build/entry.o"
   BOOTLOADER = "bootloader/rustsbi-qemu.bin"
 
+  SRC = "src/"
 
   TOOLPREFIX = "riscv64-unknown-elf-"
 
   CC = TOOLPREFIX & "gcc"
   AS = TOOLPREFIX & "as"
+  LD = TOOLPREFIX & "ld"
 
 # For beautiful output, I just ignore all of these:
 #   -Wall \
 #   -Werror \
 #   -Wextra \
 # You can add them as you wish :)
-const  CFLAGS = """
+#
+# Notice that cross-compiling needs -std=gnu99 or -std=c99
+const CFLAGS = """
 -O \
 -fno-omit-frame-pointer \
 -ggdb \
@@ -43,9 +48,13 @@ const
 
   OUTPUT_DIR = "build"
 
+  HINTS = "off"
+  WARNINGS = "off"
+
   NIM_C = "nim c"
   NIM_C_FLAGS = fmt"""
---hints:off \
+--hints:{HINTS} \
+--warnings: {WARNINGS} \
 -d:release \
 --gc:none \
 --os:standalone \
@@ -54,9 +63,9 @@ const
 --nimcache:{CACHE_DIR} \
 --noMain \
 --noLinking \
---passc:"{CFLAGS}" \
 --parallelBuild:"1" \
 --gcc.exe:{CC} \
+--passc:"{CFLAGS}" \
 """
   NIM_MAIN = "src/main.nim"
 
@@ -73,16 +82,46 @@ const BUILD_CACHE = fmt"""
 {CACHE_DIR}/@msbi.nim.c.o \
 """
 
+proc formatObjFile(name: string): string =
+  result = fmt"{CACHE_DIR}/@m{name}.nim.c.o \" & '\n'
+
+task "load", "overwrite debug cache":
+  # TODO: auto load files
+  discard
+
+template pretty(): untyped =
+  echo "\n"
+  echo "======>nimkernel<======"
+  echo "\n"
+
 task "build", "build kernel":
   if not dirExists(OUTPUT_DIR):
     createDir(OUTPUT_DIR)
 
-  direShell fmt"{NIM_C} {NIM_C_FLAGS} {NIM_MAIN}"
-  direShell AS, fmt"{ENTRY} -o {ENTRY_O}"
-  direShell CC, fmt"-T {LINKER} -o {KERNEL} -ffreestanding -O2 -nostdlib {ENTRY_O} {BUILD_CACHE} -lgcc"
+  # Search and build all the nim files, adding them all
+  # into the `BUILD_CACHE`.
+  # runTask("load")
 
-  # strip kernel
+  # Compile all nim files.
+  direShell fmt"{NIM_C} {NIM_C_FLAGS} {NIM_MAIN}"
+  # Complie the entry.
+  direShell AS, fmt"{ENTRY} -o {ENTRY_O}"
+
+task "link", "link build cache together":
+  # Link them all :)
+  direShell LD, fmt"-T {LINKER} -o {KERNEL} {ENTRY_O} {BUILD_CACHE}"
+
+  # Strip kernel
   direShell fmt"{OBJCOPY} -S -O binary {KERNEL} {KERNEL_BIN}"
+
+  when defined(checkKernelBin):
+    echo "KERNEL: objdump can recognize it."
+    direShell fmt"{OBJDUMP} -h {KERNEL}"
+
+    echo "KERNEL_BIN: should without meta info."
+    shell fmt"{OBJDUMP} -h {KERNEL_BIN}"
+
+    pretty()
 
 const runKernel_OpenSBI = fmt"""
 {QEMU} \
@@ -103,4 +142,8 @@ const runKernel_RustSBI = fmt"""
 task "run", "run the kernel on qemu":
   runTask("clean")
   runTask("build")
+  runTask("link")
   direShell runKernel_RustSBI
+
+task defaultTask, "build after clean and start running":
+  runTask("run")
