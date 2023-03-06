@@ -37,7 +37,7 @@ Here we got the `[nimkernel] Nya~` output 😃
 
 ![fufu](fufu.gif)
 
-~~真下饭~~~
+~~真下饭~~
 
 ## Reference
 
