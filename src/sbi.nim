@@ -1,16 +1,15 @@
 const
-  SET_TIMER = 0
-  CONSOLE_PUTCHAR = 1
-  CONSOLE_GETCHAR = 2
-  CLEAR_IPI = 3
-  SEND_IPI = 4
-  REMOTE_FENCE_I = 5
-  REMOTE_SFENCE_VMA = 6
-  REMOTE_SFENCE_VMA_ASID = 7
-  SHUTDOWN = 8
+  SET_TIMER              {.used.} = 0
+  CONSOLE_PUTCHAR        {.used.} = 1
+  CONSOLE_GETCHAR        {.used.} = 2
+  CLEAR_IPI              {.used.} = 3
+  SEND_IPI               {.used.} = 4
+  REMOTE_FENCE_I         {.used.} = 5
+  REMOTE_SFENCE_VMA      {.used.} = 6
+  REMOTE_SFENCE_VMA_ASID {.used.} = 7
+  SHUTDOWN               {.used.} = 8
 
 {.emit: """
-
 #ifndef _ASM_RISCV_ECALL_H
 #define _ASM_RISCV_ECALL_H
 #define RISCV_ECALL(which, arg0, arg1, arg2) ({            \
@@ -45,9 +44,7 @@ proc putchar*(ch: clong): void =
 proc shutdown*(): void =
   sbicall(SHUTDOWN, 0, 0, 0)
 
-
-
-
+# TODO
 # {.push stackTrace:off.}
 # proc sbicall(which, arg0, arg1, arg2: clong): clong {.discardable.} =
 #   asm """
