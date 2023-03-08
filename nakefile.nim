@@ -57,6 +57,7 @@ const
 --hints:{HINTS} \
 --warnings: {WARNINGS} \
 -d:release \
+--opt:speed \
 --gc:none \
 --os:standalone \
 --boundChecks:on \
@@ -76,7 +77,7 @@ const
 task "clean", "clean previous build":
   if dirExists(OUTPUT_DIR):
     removeDir(OUTPUT_DIR)
-  echo "Done."
+    echo "cleaned all previous build."
 
 template pretty(): untyped =
   echo "\n"
@@ -111,6 +112,10 @@ const runKernel_OpenSBI = fmt"""
 -device loader,file={KERNEL_BIN},addr={KERNEL_ENTRY_PHYSICAL_ADDRESS}
 """
 
+# 1. You can use the new RustSBI, the RustSBI source code can be downloaded from:
+# <https://github.com/rustsbi/rustsbi/releases>
+#
+# 2. Place you rustsbi-qemu.bin in `bootloader/`, whose default value is "bootloader/rustsbi-qemu.bin"
 const runKernel_RustSBI = fmt"""
 {QEMU} \
 -machine virt \
@@ -122,7 +127,7 @@ const runKernel_RustSBI = fmt"""
 task "run", "run the kernel on qemu":
   runTask("clean")
   runTask("build")
-  direShell runKernel_RustSBI
+  direShell runKernel_OpenSBI
 
 task defaultTask, "build after clean and start running":
   runTask("run")

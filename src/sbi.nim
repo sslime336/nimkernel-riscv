@@ -26,13 +26,10 @@ const
 long sbi_call(long which, long arg0, long arg1, long arg2) {
   return RISCV_ECALL(which, arg0, arg1, arg2);
 }
-#define RISCV_ECALL_0(which) RISCV_ECALL(which, 0, 0, 0)
 #endif
-
 """.}
 
 proc sbicall(which, arg0, arg1, arg2: clong): clong{.nodecl, importc: "sbi_call", discardable.}
-
 
 template echo*(s: string): untyped =
   for _, ch in s:
@@ -43,17 +40,3 @@ proc putchar*(ch: clong): void =
 
 proc shutdown*(): void =
   sbicall(SHUTDOWN, 0, 0, 0)
-
-# TODO
-# {.push stackTrace:off.}
-# proc sbicall(which, arg0, arg1, arg2: clong): clong {.discardable.} =
-#   asm """
-#     ld a0, `arg0`
-#     ld a1, `arg1`
-#     ld a2, `arg2`
-#     ld a7, `which`
-#     :"+r"(`arg0`)
-#     :"r"(`arg1`), "r"(`arg2`), "r"(`which`)
-#   """
-#   result = arg0
-# {.pop.}
