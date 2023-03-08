@@ -3,6 +3,8 @@ import std/strformat
 import std/os
 import std/strutils
 
+{.hint[XDeclaredButNotUsed]: off.}
+
 const
   KERNEL_ENTRY_PHYSICAL_ADDRESS = 0x80200000
   CACHE_DIR = "build/.cache"
@@ -28,8 +30,7 @@ const
 # You can add them as you wish :)
 #
 # Notice that cross-compiling needs -std=gnu99 or -std=c99
-const CFLAGS = """
--O \
+const CFLAGS = fmt"""
 -fno-omit-frame-pointer \
 -ggdb \
 -gdwarf-2 \
@@ -38,7 +39,6 @@ const CFLAGS = """
 -ffreestanding \
 -fno-common \
 -nostdlib \
--w -I$lib \
 -std=gnu99 \
 """
 
@@ -53,6 +53,7 @@ const
 
   NIM_C = "nim c"
   NIM_C_FLAGS = fmt"""
+--out: {KERNEL} \
 --hints:{HINTS} \
 --warnings: {WARNINGS} \
 -d:release \
@@ -62,11 +63,12 @@ const
 --cpu:riscv64 \
 --nimcache:{CACHE_DIR} \
 --noMain \
---noLinking \
---parallelBuild:"1" \
---gcc.exe:{CC} \
 --passc:"{CFLAGS}" \
+--gcc.exe: {CC} \
+--gcc.linkerexe: {LD} \
+--passl: "-T{LINKER} {ENTRY_O}" \
 """
+
   NIM_MAIN = "src/main.nim"
 
   QEMU = "qemu-system-riscv64"
@@ -75,19 +77,6 @@ task "clean", "clean previous build":
   if dirExists(OUTPUT_DIR):
     removeDir(OUTPUT_DIR)
   echo "Done."
-
-
-const BUILD_CACHE = fmt"""
-{CACHE_DIR}/@mmain.nim.c.o \
-{CACHE_DIR}/@msbi.nim.c.o \
-"""
-
-proc formatObjFile(name: string): string =
-  result = fmt"{CACHE_DIR}/@m{name}.nim.c.o \" & '\n'
-
-task "load", "overwrite debug cache":
-  # TODO: auto load files
-  discard
 
 template pretty(): untyped =
   echo "\n"
@@ -98,19 +87,10 @@ task "build", "build kernel":
   if not dirExists(OUTPUT_DIR):
     createDir(OUTPUT_DIR)
 
-  # Search and build all the nim files, adding them all
-  # into the `BUILD_CACHE`.
-  # runTask("load")
-
-  # Compile all nim files.
-  direShell fmt"{NIM_C} {NIM_C_FLAGS} {NIM_MAIN}"
   # Complie the entry.
   direShell AS, fmt"{ENTRY} -o {ENTRY_O}"
-
-task "link", "link build cache together":
-  # Link them all :)
-  direShell LD, fmt"-T {LINKER} -o {KERNEL} {ENTRY_O} {BUILD_CACHE}"
-
+  # Compile all nim files.
+  direShell fmt"nim c {NIM_C_FLAGS} {NIM_MAIN}"
   # Strip kernel
   direShell fmt"{OBJCOPY} -S -O binary {KERNEL} {KERNEL_BIN}"
 
@@ -142,7 +122,6 @@ const runKernel_RustSBI = fmt"""
 task "run", "run the kernel on qemu":
   runTask("clean")
   runTask("build")
-  runTask("link")
   direShell runKernel_RustSBI
 
 task defaultTask, "build after clean and start running":
