@@ -83,4 +83,4 @@ Here we got the `[nimkernel] Nya~` output 😃
 
 ## TODO
 
-- [ ] Use inline asm rather than `emit` to call from c code.
+- [ ] Use inline asm rather than `emit`.
