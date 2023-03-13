@@ -33,7 +33,7 @@ struct sbiret {
   register unsigned long a1 asm ("a1") = (unsigned long)(arg1);  \
   asm volatile ("ecall"                              \
             : "+r" (a0), "+r" (a1)                   \
-            : "r" (a0), "r" (a1), "r" (a6), "r" (a7) \
+            : "r" (a6), "r" (a7) \
             : "memory");                             \
   struct sbiret ret = { arg0, arg1 };                \
   ret;                                               \

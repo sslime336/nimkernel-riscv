@@ -1,4 +1,8 @@
+import console, sbi
 
-proc rawoutput(msg: string) = discard
+proc rawoutput*(msg: string) =
+  echo msg
 
-proc panic(info: string): void = discard
+proc panic*(info: string) =
+  rawoutput info
+  shutdown()
