@@ -1,7 +1,10 @@
 import sbi
+import console
 
-proc nya() {.exportc: "nya_main".} =
-  ## nya is our boot proc in Nim, nya~
+proc meow {.exportc: "main".} =
   echo "[nimkernel] Nya~\n"
-  shutdown()
 
+  # Currently we supported multi-hart, so when you called shutdown, you may not
+  # be able to see the [nimkernel] output as one of three harts would shutdown as
+  # we will meet the race from other harts.
+  # shutdown() 

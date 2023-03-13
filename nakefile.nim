@@ -1,12 +1,11 @@
 import nake
 import std/strformat
 import std/os
-import std/strutils
 
 {.hint[XDeclaredButNotUsed]: off.}
 
 const
-  KERNEL_ENTRY_PHYSICAL_ADDRESS = 0x80200000
+  KERNEL_ENTRY_PHYS_ADDR = 0x80200000
   CACHE_DIR = "build/.cache"
   LINKER = "src/linker.ld"
   KERNEL = "build/nimkernel"
@@ -73,6 +72,7 @@ const
   NIM_MAIN = "src/main.nim"
 
   QEMU = "qemu-system-riscv64"
+  DEBUG = "riscv64-unknown-elf-gdb"
 
 task "clean", "clean previous build":
   if dirExists(OUTPUT_DIR):
@@ -104,30 +104,50 @@ task "build", "build kernel":
 
     pretty()
 
-const runKernel_OpenSBI = fmt"""
-{QEMU} \
--machine virt \
--nographic \
--kernel {KERNEL_BIN} \
--device loader,file={KERNEL_BIN},addr={KERNEL_ENTRY_PHYSICAL_ADDRESS}
-"""
+const
+  MACHINE = "virt"
+  CPU = "rv64"
+  MEM = "128M"
+  NHART = "3"
 
-# 1. You can use the new RustSBI, the RustSBI source code can be downloaded from:
-# <https://github.com/rustsbi/rustsbi/releases>
-#
-# 2. Place you rustsbi-qemu.bin in `bootloader/`, whose default value is "bootloader/rustsbi-qemu.bin"
-const runKernel_RustSBI = fmt"""
-{QEMU} \
--machine virt \
--nographic \
--bios {BOOTLOADER} \
--device loader,file={KERNEL_BIN},addr={KERNEL_ENTRY_PHYSICAL_ADDRESS}
-"""
+template kernelRun(): string =
+  fmt"""
+  {QEMU} -M {MACHINE} \
+	       -nographic \
+	       -cpu {CPU} \
+	       -m {MEM} \
+	       -kernel {KERNEL_BIN} \
+	       -smp {NHART}
+  """
+
+template kernelDebugServer(): string =
+  fmt"""
+	{QEMU} -M {MACHINE} \
+	        -nographic \
+	        -cpu {CPU} \
+	        -m {MEM} \
+	        -kernel {KERNEL_BIN} \
+	        -smp {NHART} \
+	        -s -S 
+  """
+
+template kernelDebug(): string =
+  fmt"""
+	{DEBUG} -ex 'file {KERNEL}' \
+	        -ex 'set arch riscv:rv64' \
+	        -ex 'target remote localhost:1234'
+  """
 
 task "run", "run the kernel on qemu":
   runTask("clean")
   runTask("build")
-  direShell runKernel_OpenSBI
+  direShell(kernelRun())
 
 task defaultTask, "build after clean and start running":
   runTask("run")
+
+task "debug-server", "start gdb debug-server":
+  direShell(kernelDebugServer())
+
+task "debug", "start gdb debugging":
+  direShell(kernelDebug())

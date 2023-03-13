@@ -2,12 +2,14 @@
 
 I wrote this just for fun.
 
+Support multi-CPUs.
+
 ## Deps
 
 I just listed my environment 😛
 
-- Nim 1.6.10
-- qemu v7.0.0(qemu-system-riscv64)
+- Nim >= 1.6.10
+- qemu v7.0.0(qemu-system-riscv64, better higher the v5.x.x)
 - Nimble(for nake)
 - nake
 - C compiler(riscv64-unknown-elf-*)
@@ -21,6 +23,7 @@ nake run
 And then you'll see:
 
 ```plaintext
+cleaned all previous build.
 
 OpenSBI v1.0
    ____                    _____ ____ _____
@@ -34,7 +37,7 @@ OpenSBI v1.0
 
 Platform Name             : riscv-virtio,qemu
 Platform Features         : medeleg
-Platform HART Count       : 1
+Platform HART Count       : 3
 Platform IPI Device       : aclint-mswi
 Platform Timer Device     : aclint-mtimer @ 10000000Hz
 Platform Console Device   : uart8250
@@ -42,14 +45,14 @@ Platform HSM Device       : ---
 Platform Reboot Device    : sifive_test
 Platform Shutdown Device  : sifive_test
 Firmware Base             : 0x80000000
-Firmware Size             : 252 KB
+Firmware Size             : 268 KB
 Runtime SBI Version       : 0.3
 
 Domain0 Name              : root
 Domain0 Boot HART         : 0
-Domain0 HARTs             : 0*
+Domain0 HARTs             : 0*,1*,2*
 Domain0 Region00          : 0x0000000002000000-0x000000000200ffff (I)
-Domain0 Region01          : 0x0000000080000000-0x000000008003ffff ()
+Domain0 Region01          : 0x0000000080000000-0x000000008007ffff ()
 Domain0 Region02          : 0x0000000000000000-0xffffffffffffffff (R,W,X)
 Domain0 Next Address      : 0x0000000080200000
 Domain0 Next Arg1         : 0x0000000087000000
@@ -67,20 +70,26 @@ Boot HART MHPM Count      : 0
 Boot HART MIDELEG         : 0x0000000000001666
 Boot HART MEDELEG         : 0x0000000000f0b509
 [nimkernel] Nya~
+QEMU 7.0.0 monitor - type 'help' for more information
+(qemu) q
 ```
 
+Type Ctrl + A then singly type c to shutdown this kernel.
+
 Here we got the `[nimkernel] Nya~` output 😃
+
+Notice that in [`main.nim`](src/main.nim)
+
+```nim
+proc meow {.exportc: "main".} =
+  echo "[nimkernel] Nya~\n"
+
+  # Currently we supported multi-hart, so when you called shutdown, you may not
+  # be able to see the [nimkernel] output as one of three harts would shutdown as
+  # we will meet the race from other harts.
+  # shutdown() 
+```
 
 ![fufu](fufu.gif)
 
 ~~真下饭~~
-
-## Reference
-
-- slimeOS
-- nimkernel
-- xv6-riscv
-
-## TODO
-
-- [ ] Use inline asm rather than `emit`.

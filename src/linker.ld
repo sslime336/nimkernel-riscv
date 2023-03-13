@@ -1,50 +1,31 @@
-OUTPUT_ARCH(riscv)
-ENTRY(_start)
-BASE_ADDRESS = 0x80200000;
+OUTPUT_ARCH( "riscv" )
+ENTRY( _entry )
 
 SECTIONS
 {
-    . = BASE_ADDRESS;
+	. = 0x80200000;
 
-    skernel = .;
+	. = ALIGN(0x1000);
+	.text : {
+		*(.text.entry)
+		*(.text .text.*)
+	}
 
-    stext = .;
-    .text : {
-        *(.text.entry)
-        *(.text .text.*)
-    }
+	. = ALIGN(0x1000);
+	.rodata : {
+		*(.rodata .rodata.*)
+	}
 
-    . = ALIGN(4K);
-    etext = .;
-    srodata = .;
-    .rodata : {
-        *(.rodata .rodata.*)
-        *(.srodata .srodata.*)
-    }
+	. = ALIGN(0x1000);
+	.data : {
+		*(.data .data.*)
+	}
 
-    . = ALIGN(4K);
-    erodata = .;
-    sdata = .;
-    .data : {
-        *(.data .data.*)
-        *(.sdata .sdata.*)
-    }
+	. = ALIGN(0x1000);
+	.bss : {
+		*(.bss.stack)
+		*(.bss .bss.*)
+	}
 
-    . = ALIGN(4K);
-    edata = .;
-    .bss : {
-        *(.bss.stack)
-        sbss = .;
-        *(.bss .bss.*)
-        *(.sbss .sbss.*)
-    }
-
-
-    . = ALIGN(4K);
-    ebss = .;
-    ekernel = .;
-
-    /DISCARD/ : {
-        *(.eh_frame)
-    }
+	PROVIDE(ekernel = .); 
 }
