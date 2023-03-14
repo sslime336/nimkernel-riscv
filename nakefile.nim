@@ -5,7 +5,6 @@ import std/os
 {.hint[XDeclaredButNotUsed]: off.}
 
 const
-  KERNEL_ENTRY_PHYS_ADDR = 0x80200000
   CACHE_DIR = "build/.cache"
   LINKER = "src/linker.ld"
   KERNEL = "build/nimkernel"
@@ -109,12 +108,15 @@ const
   CPU = "rv64"
   MEM = "128M"
   NHART = "3"
+  
+  RUST_SBI = "bootloader/rustsbi-qemu.bin"
 
 template kernelRun(): string =
   fmt"""
   {QEMU} -M {MACHINE} \
 	       -nographic \
 	       -cpu {CPU} \
+         -bios {RUST_SBI} \
 	       -m {MEM} \
 	       -kernel {KERNEL_BIN} \
 	       -smp {NHART}
@@ -123,12 +125,13 @@ template kernelRun(): string =
 template kernelDebugServer(): string =
   fmt"""
 	{QEMU} -M {MACHINE} \
-	        -nographic \
-	        -cpu {CPU} \
-	        -m {MEM} \
-	        -kernel {KERNEL_BIN} \
-	        -smp {NHART} \
-	        -s -S 
+	       -nographic \
+	       -cpu {CPU} \
+         -bios {RUST_SBI} \
+	       -m {MEM} \
+	       -kernel {KERNEL_BIN} \
+	       -smp {NHART} \
+	       -s -S 
   """
 
 template kernelDebug(): string =

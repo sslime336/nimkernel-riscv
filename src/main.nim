@@ -1,4 +1,5 @@
 import console
+import sbi
 
 proc meow {.exportc: "main".} =
-  println("[nimkernel] Nya~")
+  if gethartid() == 0: println("[nimkernel] Nya~")
