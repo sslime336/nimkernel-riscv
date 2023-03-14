@@ -53,3 +53,29 @@ Type Ctrl + A then singly type c to shutdown this kernel.
 ![fufu](fufu.gif)
 
 ~~真下饭~~
+
+## How to debug
+
+I have config debug-sever which should be started first.
+
+```bash
+nake debug-server
+```
+
+There would not print anything though, the server is already started.
+
+The next step is to start debugging in another shell.
+
+```bash
+nake debug
+```
+
+Then make a breakpoint at 0x8020000 by:
+
+```bash
+b *0x80200000
+```
+
+Press `c` and `Enter` to continue.
+
+Now we have enter the nimkernel's `_entry`, where you can start debugging :P
