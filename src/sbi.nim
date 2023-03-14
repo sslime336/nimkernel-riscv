@@ -1,4 +1,3 @@
-import private/sbi/legacy
+import private/sbi/[legacy, hsm]
 
-export legacy
-
+export legacy, hsm

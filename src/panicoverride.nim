@@ -1,7 +1,7 @@
 import console, sbi
 
 proc rawoutput*(msg: string) =
-  echo msg
+  info(msg)
 
 proc panic*(info: string) =
   rawoutput info

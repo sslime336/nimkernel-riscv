@@ -1,7 +1,16 @@
 import ecall
 
+const EID_HSM {.used.} = 0x48534D
+
+const
+  FID_START      {.used.} = 0
+  FID_STOP       {.used.} = 1
+  FID_GET_STATUS {.used.} = 2
+  FID_SUSPEND    {.used.} = 3
+
 type
   HartState* {.pure.} = enum
+    Undefined = -1
 
     Started = 0        ##\
     ## The hart is physically powered-up and executing normally.
@@ -32,17 +41,44 @@ type
     ## resume normal execution from the SUSPENDED state and the SBI implementation
     ## is still working to get the hart in the STARTED state.
 
-const EID_HSM {.used.} = 0x48534D
+proc toHartStatus(statusCode: uint): HartState {.used.} =
+  result = case statusCode:
+  of 0:
+    HartState.Started
+  of 1:
+    HartState.Stopped
+  of 2:
+    HartState.StartPending
+  of 3:
+    HartState.StopPending
+  of 4:
+    HartState.Suspended
+  of 5:
+    HartState.SuspendPending
+  of 6:
+    HartState.ResumePending
+  else:
+    HartState.Undefined
 
-const
-  FID_START      {.used.} = 0
-  FID_STOP       {.used.} = 1
-  FID_GET_STATUS {.used.} = 2
-  FID_SUSPEND    {.used.} = 3
+include ../results
 
+type
+  THSMRet = enum
+    hartStart,      hartStop
+    hartGetStatus, hartSuspend
 
-discard """
-
-proc gethartstatus*(): uint = 
-
-"""
+  HSMRet* = object
+    case kind: THSMRet
+    of hartStart:
+      discard
+    of hartStop:
+      discard
+    of hartGetStatus:
+      case res: Result
+        of Ok:
+          status: HartState
+        of Err:
+          errCode: uint
+    of hartSuspend:
+      discard
+      

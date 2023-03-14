@@ -11,18 +11,16 @@ const
   EID_REMOTE_SFENCE_VMA_ASID {.used.} = 7
   EID_SHUTDOWN               {.used.} = 8
 
-proc settimer*(stimeValue: uint64): int = 
-  result = sbicall(EID_SET_TIMER, culong(stimeValue), 0, 0).int
+# TODO
 
-proc putchar*(ch: char): int =
-  result = sbicall(EID_CONSOLE_PUTCHAR, culong(ch), 1, 0)
+proc settimer*(stimeValue: uint64): int {.discardable.} = sbicall(EID_SET_TIMER, uint(stimeValue), 0, 0).int
 
-proc getchar*(): char =
-  result = sbicall(EID_CONSOLE_GETCHAR, 0, 0, 0).char
+proc putchar*(ch: char): int {.discardable.} = sbicall(EID_CONSOLE_PUTCHAR, uint(ch), 1, 0).int
 
-proc clearipi*() = discard
+proc getchar*(): char {.discardable.} = sbicall(EID_CONSOLE_GETCHAR, 0, 0, 0).char
 
-proc sendipi*() = discard
+proc clearipi*(): int {.discardable.} = sbicall(EID_CLEAR_IPI, 0, 0, 0).int
 
-proc shutdown*() =
-  discard sbi_call(EID_SHUTDOWN, 0, 0, 0)
+proc sendipi*(hartMask: uint):  int {.discardable.} = sbicall(EID_SEND_IPI, 0, 0, 0).int
+
+proc shutdown*(): int {.discardable.} = sbicall(EID_SHUTDOWN, 0, 0, 0).int
