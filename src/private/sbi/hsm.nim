@@ -85,6 +85,6 @@ type
 proc getHartId*(): uint =
   asm """
     mv %[`hartid`], tp
-    : [`hartid`] "+r"(`result`)
+    : [`hartid`] "=r"(`result`)
   """
  

@@ -107,7 +107,7 @@ const
   MACHINE = "virt"
   CPU = "rv64"
   MEM = "128M"
-  NHART = "3"
+  NHART = "5"
   
   RUST_SBI = "bootloader/rustsbi-qemu.bin"
 
