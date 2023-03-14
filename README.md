@@ -9,7 +9,7 @@ Support multi-CPUs.
 I just listed my environment 😛
 
 - Nim >= 1.6.10
-- qemu v7.0.0(qemu-system-riscv64, better higher the v5.x.x)
+- qemu v7.0.0(qemu-system-riscv64, better higher than v5.x.x)
 - Nimble(for nake)
 - nake
 - C compiler(riscv64-unknown-elf-*)
@@ -74,21 +74,9 @@ QEMU 7.0.0 monitor - type 'help' for more information
 (qemu) q
 ```
 
-Type Ctrl + A then singly type c to shutdown this kernel.
-
 Here we got the `[nimkernel] Nya~` output 😃
 
-Notice that in [`main.nim`](src/main.nim)
-
-```nim
-proc meow {.exportc: "main".} =
-  echo "[nimkernel] Nya~\n"
-
-  # Currently we supported multi-hart, so when you called shutdown, you may not
-  # be able to see the [nimkernel] output as one of three harts would shutdown as
-  # we will meet the race from other harts.
-  # shutdown() 
-```
+Type Ctrl + A then singly type c to shutdown this kernel.
 
 ![fufu](fufu.gif)
 
