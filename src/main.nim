@@ -1,5 +1,6 @@
 import console
 import sbi, sync
+import std/volatile
 
 var booted = false
 
@@ -7,7 +8,8 @@ proc meow {.exportc: "main".} =
   if gethartid() == 0:
     println("[nimkernel] Nya~")
     fence()
-    booted = true
+    volatileStore(booted.addr, true)
   else:
-    while not booted: discard
-    println("done") # some problems here :(
+    while not volatileLoad(booted.addr):
+      discard
+    println("done") # may need a lock?
